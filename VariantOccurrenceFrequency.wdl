@@ -129,7 +129,7 @@ task Merge {
 
     RuntimeAttr runtime_default = object {
         cpu: 1,
-        memory: 3.75,
+        memory: 64,
         disks: 100,
         bootDiskSizeGb: 10,
         preemptible: 3,
@@ -188,7 +188,7 @@ task DecodeVariants {
 
     RuntimeAttr runtime_default = object {
         cpu: 1,
-        memory: 3.75,
+        memory: 64,
         disks: 100,
         bootDiskSizeGb: 10,
         preemptible: 3,
@@ -226,7 +226,7 @@ task DecodeVariants {
                 x = base64.b64decode(variant).decode("utf-8")
                 x = x.split(":")
                 x.extend(frequency)
-                out_file.write("\t".join([str(c) for c in x]))
+                out_file.write("\t".join([str(c) for c in x]) + "\n")
         CODE
     >>>
 }
