@@ -37,7 +37,10 @@ The following is an example input to the workflow.
     ],
     "VariantOccurrenceFrequency.runtime_override_encode": {"docker": "pzm:latest"},
     "VariantOccurrenceFrequency.runtime_override_merge": {"docker": "pzm:latest"},
-    "VariantOccurrenceFrequency.runtime_override_decode": {"docker": "pzm:latest"}
+    "VariantOccurrenceFrequency.runtime_override_decode": {"docker": "pzm:latest"},
+    "VariantOccurrenceFrequency.max_batch_size": 100
 }
 
 ```
+
+The workflow batches the input variants into batches of `max_batch_size` size. 
