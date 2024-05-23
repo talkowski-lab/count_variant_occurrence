@@ -44,3 +44,6 @@ The following is an example input to the workflow.
 ```
 
 The workflow batches the input variants into batches of `max_batch_size` size. 
+The batching is related to the first step of the workflow that reads the VCF files to extract information. 
+The rest of the pipeline is not batched. It takes about ~30seconds to read each VCF, hence a batch of 100, may take 
+~3000 seconds per batch. 
