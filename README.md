@@ -2,7 +2,7 @@ Given a set of single-sample VCF files, it counts how many times each variant is
 It reports this in the following format: 
 
 ```
-chrom  start  stop  alts  count_with_filter_pass  count_with_other_filters
+chrom  start  stop  alts  count_with_other_filters    count_with_filter_pass
 chr1  11021  11022  ('A',)  1  0
 ```
 
