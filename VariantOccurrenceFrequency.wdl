@@ -183,7 +183,7 @@ task Merge {
 
         with gzip.open("dict.csv.gz", "wt", compresslevel=4) as out_file:
             for k, v in variants.items():
-                out_file.write(f"{k}\t{v[0]}\t{v[1]}\n")
+                out_file.write(f"{k}\t{v[0] + v[1]}\t{v[1]}\n")
         CODE
     >>>
 }
