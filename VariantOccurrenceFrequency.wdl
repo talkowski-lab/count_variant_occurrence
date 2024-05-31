@@ -1,5 +1,7 @@
 version 1.0
 
+import "GetShardInputs.wdl"
+
 struct RuntimeAttr {
     Int? cpu
     Float? memory
@@ -15,7 +17,7 @@ workflow VariantOccurrenceFrequency {
         Array[String] sample_ids
         Array[File] vcf_files
 
-        Int max_batch_size = 2
+        Int samples_per_shard = 2
 
         RuntimeAttr runtime_override_encode
         RuntimeAttr runtime_override_merge
@@ -25,20 +27,31 @@ workflow VariantOccurrenceFrequency {
     Array[Pair[String, File]] zipped = zip(sample_ids, vcf_files)
     Int vcfs_length = length(zipped)
 
-    scatter (i in range((vcfs_length / max_batch_size) + 1)) {
-        scatter (j in range(max_batch_size)) {
-            Int num = if i > 0 then j + (i * max_batch_size) else j
-            if (num < vcfs_length) {
-                Pair[String, File] vcf_list = zipped[num]
-            }
-        }
-    }
+    Int num_samples = length(vcf_files)
+    Float num_samples_float = num_samples
+    Int num_shards = ceil(num_samples_float / samples_per_shard)
 
-    Int batch_count = length(vcf_list)
-    scatter (k in range(batch_count)) {
+    scatter (i in range(num_shards)) {
+        call GetShardInputs.GetShardInputs as GetShardVCFs {
+            input:
+                items_per_shard = samples_per_shard,
+                shard_number = i,
+                num_items = num_samples,
+                all_items = vcf_files
+        }
+
+        call GetShardInputs.GetShardInputs as GetShardIds {
+            input:
+                items_per_shard = samples_per_shard,
+                shard_number = i,
+                num_items = num_samples,
+                all_items = sample_ids
+        }
+
         call EncodeVariants as encode_variants {
             input:
-                vcf_files = select_all(vcf_list[k]),
+                vcf_files = GetShardVCFs.shard_items,
+                sample_ids = GetShardIds.shard_items,
                 runtime_override = runtime_override_encode
         }
     }
@@ -62,7 +75,8 @@ workflow VariantOccurrenceFrequency {
 
 task EncodeVariants {
     input {
-        Array[Pair[String, File]] vcf_files
+        Array[File] vcf_files
+        Array[String] sample_ids
         RuntimeAttr runtime_override
     }
 
@@ -94,19 +108,15 @@ task EncodeVariants {
     command <<<
         set -euo pipefail
 
-        VCFS="~{write_json(vcf_files)}"
-
         python3 <<CODE
         import base64
         import gzip
         import json
         import pysam
 
-        with open("$VCFS", "r") as file:
-            data = json.load(file)
-        data = {x["left"]: x["right"] for x in data}
-
-        for sample_id, filename in data.items():
+        vcf_files = ["~{sep='", "' vcf_files}"]
+        sample_ids = ["~{sep='", "' sample_ids}"]
+        for sample_id, filename in zip(sample_ids, vcf_files):
             vcf = pysam.VariantFile(filename)
             with gzip.open(f"{sample_id}.csv.gz", "wt", compresslevel=4) as out_file:
                 for variant in vcf:
