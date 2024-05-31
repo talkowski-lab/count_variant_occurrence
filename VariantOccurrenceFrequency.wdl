@@ -65,6 +65,7 @@ workflow VariantOccurrenceFrequency {
     call DecodeVariants as decode {
         input:
             encoded_variants_dict = merge.encoded_variants_dict,
+            input_vcfs_count = num_samples,
             runtime_override = runtime_override_decode
     }
 
@@ -191,6 +192,7 @@ task Merge {
 task DecodeVariants {
     input {
         File encoded_variants_dict
+        Int input_vcfs_count
         RuntimeAttr runtime_override
     }
 
@@ -233,12 +235,13 @@ task DecodeVariants {
                 variants[line[0]] = [line[1], line[2]]
 
         with gzip.open("variants.csv.gz", "wt", compresslevel=4) as out_file:
-            out_file.write("\t".join(["chrom", "pos", "ref", "alt", "count-non-pass-filter", "count-pass-filter"]) + "\n")
+            out_file.write("\t".join(["chrom", "pos", "ref", "alt", "count-non-pass-filter", "count-pass-filter", "sample-count"]) + "\n")
             for variant, frequency in variants.items():
                 x = base64.b64decode(variant).decode("utf-8")
                 x = x.split(":")
                 x.extend(frequency)
-                out_file.write(f"chr{x[0]}\t" + "\t".join([str(c) for c in x[1:]]))
+                x.extend(str(~{input_vcfs_count}))
+                out_file.write(f"chr{x[0]}\t" + "\t".join([str(c) for c in x[1:]]) + "\n")
         CODE
     >>>
 }
