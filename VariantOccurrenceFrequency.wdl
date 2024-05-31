@@ -122,7 +122,7 @@ task EncodeVariants {
                 for variant in vcf:
                     if "multiallelic" in variant.filter.keys():
                         pass
-                    key = base64.b64encode(f"{variant.chrom.removeprefix('chr')}:{str(variant.pos)}:{str(variant.alts)}".encode("utf-8")).decode("utf-8")
+                    key = base64.b64encode(f"{variant.chrom.removeprefix('chr')}:{str(variant.pos)}:{variant.ref}:{variant.alts[0]}".encode("utf-8")).decode("utf-8")
                     filter_key = "1" if "PASS" in variant.filter.keys() else "0"
                     out_file.write(f"{key}\t{filter_key}\n")
         CODE
@@ -233,7 +233,7 @@ task DecodeVariants {
                 variants[line[0]] = [line[1], line[2]]
 
         with gzip.open("variants.csv.gz", "wt", compresslevel=4) as out_file:
-            out_file.write("\t".join(["chrom", "pos", "alts", "count-non-pass-filter", "count-pass-filter"]) + "\n")
+            out_file.write("\t".join(["chrom", "pos", "ref", "alt", "count-non-pass-filter", "count-pass-filter"]) + "\n")
             for variant, frequency in variants.items():
                 x = base64.b64decode(variant).decode("utf-8")
                 x = x.split(":")
