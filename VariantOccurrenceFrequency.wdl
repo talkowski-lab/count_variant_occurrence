@@ -120,6 +120,8 @@ task EncodeVariants {
             vcf = pysam.VariantFile(filename)
             with gzip.open(f"{sample_id}.csv.gz", "wt", compresslevel=4) as out_file:
                 for variant in vcf:
+                    if "multiallelic" in variant.filter.keys():
+                        pass
                     key = base64.b64encode(f"{variant.chrom}:{str(variant.start)}:{str(variant.stop)}:{str(variant.alts)}".encode("utf-8")).decode("utf-8")
                     filter_key = "1" if "PASS" in variant.filter.keys() else "0"
                     out_file.write(f"{key}\t{filter_key}\n")
