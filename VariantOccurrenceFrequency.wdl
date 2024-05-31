@@ -233,7 +233,7 @@ task DecodeVariants {
                 variants[line[0]] = [line[1], line[2]]
 
         with gzip.open("variants.csv.gz", "wt", compresslevel=4) as out_file:
-            out_file.write("\t".join(["chrom", "start", "stop", "alts", "count-non-pass-filter", 'count-pass-filter']))
+            out_file.write("\t".join(["chrom", "start", "stop", "alts", "count-non-pass-filter", "count-pass-filter"]) + "\n")
             for variant, frequency in variants.items():
                 x = base64.b64decode(variant).decode("utf-8")
                 x = x.split(":")
