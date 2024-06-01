@@ -243,7 +243,7 @@ task DecodeVariants {
                 variants[line[0]] = [line[1], line[2]]
 
         with gzip.open("variants.tab.gz", "wt", compresslevel=4) as out_file:
-            out_file.write("\t".join(["chrom", "pos", "ref", "alt", "count_non_pass_filter", "count_pass_filter", "sample_count", "all_cohort_af", "pass_cohort_af"]) + "\n")
+            out_file.write("\t".join(["#chrom", "pos", "ref", "alt", "count_non_pass_filter", "count_pass_filter", "sample_count", "all_cohort_af", "pass_cohort_af"]) + "\n")
             for variant, frequency in variants.items():
                 x = base64.b64decode(variant).decode("utf-8")
                 x = x.split(":")
@@ -251,7 +251,7 @@ task DecodeVariants {
                 x.extend(str(~{input_vcfs_count}))
                 x.append(int(x[4]) / 10 * 100)  # all_cohort_af
                 x.append(int(x[5]) / 10 * 100)  # pass_cohort_af
-                out_file.write(f"#chr{x[0]}\t" + "\t".join([str(c) for c in x[1:]]) + "\n")
+                out_file.write(f"chr{x[0]}\t" + "\t".join([str(c) for c in x[1:]]) + "\n")
         CODE
     >>>
 }
@@ -291,12 +291,10 @@ task SortCompressIndex {
     command <<<
         set -euo pipefail
 
-        {
-            gunzip -c ~{variants_frequence} | head -n 1
-            gunzip -c ~{variants_frequence} | tail -n +2 | sort -t$'\t' -k1,1V -k2,2n
-        } > sorted_variants.tab
+        gunzip -c ~{variants_frequence} > variants.tab
+        (head -n 1 variants.tab && tail -n +2 variants.tab | sort) > sorted_variants.tab
 
-        bgzip -c sorted_variants.tab > sorted_variants.tab.gz
-        tabix -s 1 -b 2 -e 2 sorted_variants.tab.gz
+        bgzip -c "sorted_variants.tab" > "sorted_variants.tab.gz"
+        tabix -s 1 -b 2 -e 2 "sorted_variants.tab.gz"
     >>>
 }
