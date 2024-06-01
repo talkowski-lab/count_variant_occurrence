@@ -243,7 +243,7 @@ task DecodeVariants {
                 x.extend(str(~{input_vcfs_count}))
                 x.append(int(x[4]) / 10 * 100)  # all_cohort_af
                 x.append(int(x[5]) / 10 * 100)  # pass_cohort_af
-                out_file.write(f"chr{x[0]}\t" + "\t".join([str(c) for c in x[1:]]) + "\n")
+                out_file.write(f"#chr{x[0]}\t" + "\t".join([str(c) for c in x[1:]]) + "\n")
         CODE
     >>>
 }
