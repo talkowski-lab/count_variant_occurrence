@@ -22,6 +22,7 @@ workflow VariantOccurrenceFrequency {
         RuntimeAttr runtime_override_encode
         RuntimeAttr runtime_override_merge
         RuntimeAttr runtime_override_decode
+        RuntimeAttr runtime_override_sortindex
     }
 
     Array[Pair[String, File]] zipped = zip(sample_ids, vcf_files)
@@ -69,8 +70,15 @@ workflow VariantOccurrenceFrequency {
             runtime_override = runtime_override_decode
     }
 
+    call SortCompressIndex as sortCompressIndex {
+        input:
+            variants_frequence = decode.variants_frequence,
+            runtime_override = runtime_override_sortindex
+    }
+
     output {
-        File variants_frequence = decode.variants_frequence
+        File variants_frequency = sortCompressIndex.variants_frequency
+        File variants_frequency_index = sortCompressIndex.variants_frequency_index
     }
 }
 
@@ -245,5 +253,50 @@ task DecodeVariants {
                 x.append(int(x[5]) / 10 * 100)  # pass_cohort_af
                 out_file.write(f"#chr{x[0]}\t" + "\t".join([str(c) for c in x[1:]]) + "\n")
         CODE
+    >>>
+}
+
+task SortCompressIndex {
+    input {
+        File variants_frequence
+        RuntimeAttr runtime_override
+    }
+
+    output {
+        File variants_frequency = "sorted_variants.tab.gz"
+        File variants_frequency_index = "sorted_variants.tab.gz.tbi"
+    }
+
+    RuntimeAttr runtime_default = object {
+        cpu: 1,
+        memory: 64,
+        disks: 100,
+        bootDiskSizeGb: 10,
+        preemptible: 3,
+        maxRetries: 1,
+        docker: "python:slim-buster"
+    }
+    RuntimeAttr runtime_attr = select_first([runtime_override, runtime_default])
+
+    runtime {
+        cpu: select_first([runtime_attr.cpu, runtime_default.cpu])
+        memory: select_first([runtime_attr.memory, runtime_default.memory]) + " GiB"
+        disks: "local-disk " + select_first([runtime_attr.disks, runtime_default.disks]) + " SSD"
+        bootDiskSizeGb: select_first([runtime_attr.bootDiskSizeGb, runtime_default.bootDiskSizeGb])
+        preemptible: select_first([runtime_attr.preemptible, runtime_default.preemptible])
+        maxRetries: select_first([runtime_attr.maxRetries, runtime_default.maxRetries])
+        docker: select_first([runtime_attr.docker, runtime_default.docker])
+    }
+
+    command <<<
+        set -euo pipefail
+
+        {
+            gunzip -c ~{variants_frequence} | head -n 1
+            gunzip -c ~{variants_frequence} | tail -n +2 | sort -t$'\t' -k1,1V -k2,2n
+        } > sorted_variants.tab
+
+        bgzip -c sorted_variants.tab > sorted_variants.tab.gz
+        tabix -s 1 -b 2 -e 2 sorted_variants.tab.gz
     >>>
 }
