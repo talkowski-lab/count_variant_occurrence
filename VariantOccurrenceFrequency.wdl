@@ -197,7 +197,7 @@ task DecodeVariants {
     }
 
     output {
-        File variants_frequence = "variants.csv.gz"
+        File variants_frequence = "variants.tab.gz"
     }
 
     RuntimeAttr runtime_default = object {
@@ -234,7 +234,7 @@ task DecodeVariants {
                 line = line.strip().split("\t")
                 variants[line[0]] = [line[1], line[2]]
 
-        with gzip.open("variants.csv.gz", "wt", compresslevel=4) as out_file:
+        with gzip.open("variants.tab.gz", "wt", compresslevel=4) as out_file:
             out_file.write("\t".join(["chrom", "pos", "ref", "alt", "count_non_pass_filter", "count_pass_filter", "sample_count", "all_cohort_af", "pass_cohort_af"]) + "\n")
             for variant, frequency in variants.items():
                 x = base64.b64decode(variant).decode("utf-8")
