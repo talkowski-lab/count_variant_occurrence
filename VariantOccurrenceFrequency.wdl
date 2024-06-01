@@ -292,7 +292,7 @@ task SortCompressIndex {
         set -euo pipefail
 
         gunzip -c ~{variants_frequence} > variants.tab
-        (head -n 1 variants.tab && tail -n +2 variants.tab | sort) > sorted_variants.tab
+        (head -n 1 variants.tab && tail -n +2 variants.tab | sort -k1,1V -k2,2n) > sorted_variants.tab
 
         bgzip -c "sorted_variants.tab" > "sorted_variants.tab.gz"
         tabix -s 1 -b 2 -e 2 "sorted_variants.tab.gz"
