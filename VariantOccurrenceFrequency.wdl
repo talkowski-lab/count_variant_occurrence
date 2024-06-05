@@ -243,7 +243,7 @@ task DecodeVariants {
                 variants[line[0]] = [line[1], line[2]]
 
         with gzip.open("variants.tab.gz", "wt", compresslevel=4) as out_file:
-            out_file.write("\t".join(["#chrom", "pos", "ref", "alt", "count_non_pass_filter", "count_pass_filter", "sample_count", "all_cohort_af", "pass_cohort_af"]) + "\n")
+            out_file.write("\t".join(["#chrom", "pos", "ref", "alt", "all_cohort_count", "count_pass_filter", "sample_count", "all_cohort_af", "pass_cohort_af"]) + "\n")
             for variant, frequency in variants.items():
                 x = base64.b64decode(variant).decode("utf-8")
                 x = x.split(":")
