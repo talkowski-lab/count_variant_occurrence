@@ -96,7 +96,7 @@ task EncodeVariants {
     RuntimeAttr runtime_default = object {
         cpu: 1,
         memory: 3.75,
-        disks: 100,
+        disks: 25 + (ceil(size(vcf_files, "GiB")) * 2),
         bootDiskSizeGb: 10,
         preemptible: 3,
         maxRetries: 1,
@@ -151,7 +151,7 @@ task Merge {
     RuntimeAttr runtime_default = object {
         cpu: 1,
         memory: 64,
-        disks: 100,
+        disks: 25 + (ceil(size(flatten(encoded_files), "GiB")) * 2),
         bootDiskSizeGb: 10,
         preemptible: 3,
         maxRetries: 1,
@@ -211,7 +211,7 @@ task DecodeVariants {
     RuntimeAttr runtime_default = object {
         cpu: 1,
         memory: 64,
-        disks: 100,
+        disks: 25 + (ceil(size(encoded_variants_dict, "GiB")) * 2),
         bootDiskSizeGb: 10,
         preemptible: 3,
         maxRetries: 1,
@@ -272,7 +272,7 @@ task SortCompressIndex {
     RuntimeAttr runtime_default = object {
         cpu: 1,
         memory: 64,
-        disks: 100,
+        disks: 25 + (ceil(size(variants_frequence, "GiB")) * 2),
         bootDiskSizeGb: 10,
         preemptible: 3,
         maxRetries: 1,
