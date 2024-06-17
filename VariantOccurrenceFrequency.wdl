@@ -272,8 +272,8 @@ task SortCompressIndex {
     RuntimeAttr runtime_default = object {
         cpu: 1,
         memory: 64,
-        disks: 25 + (ceil(size(variants_frequence, "GiB")) * 2),
-        bootDiskSizeGb: 10,
+        disks: 100 + (ceil(size(variants_frequence, "GiB")) * 6),
+        bootDiskSizeGb: 50,
         preemptible: 3,
         maxRetries: 1,
         docker: "python:slim-buster"
